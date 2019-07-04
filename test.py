@@ -74,9 +74,21 @@ class PhpElem:
     pass
 
 class MariaDbElem:
+    def __init__(self, password):
+        self.password = password
     def installMariaDb(self):
         """Installation du service via l'apt-get"""
         apt_get_install(['mariadb-server', 'mariadb-client'])
+    
+    def secureDataBase(self):
+        """Initial DataBase configuration"""
+        os.system('mysql --user=root <<_EOF_ \
+        UPDATE mysql.user SET Password=PASSWORD("'+self.password+'") >HERE User="root"; \
+        DELETE FROM mysql.user WHERE ser=""; \
+        DELETE FROM mysql.user WHERE User="root" AND Host NOT IN ("localhost", "127.0.0.1", "::1"); \
+        DROP DATABASE IF EXISTS test; \
+        FLUSH PRIVILEGES; \
+        _EOF_')
 
 class WordpressElem:
     pass
