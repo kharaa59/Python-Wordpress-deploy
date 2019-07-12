@@ -70,6 +70,8 @@ def stateService(state, service_name):
         print("Une erreur s'est produite lors de la modification d'état du service "+service_name)
 
 class ApacheElem:
+    def __init__(self, repository)
+        self.repository = repository
     def installApache(self):
         """Installation du service via l'apt-get"""
         apt_get_install(['apache2'])
@@ -77,6 +79,25 @@ class ApacheElem:
     def startApache(self):
         """Démarrage du service"""
         stateService('start','apache2.service')
+        
+    def configurationApache(self):
+        """Modifier le fichier avec le fichier de conf avant de le copier"""
+        try:
+            subprocess.call(['touch /etc/apache2/sites-available/'+self.repository+'.conf'])
+        except OSError:
+            print ("Une erreur s'est produit lors de la création du fichier de configuration")
+        
+        apacheConfExample = open("configuration_files/apache.example.com.conf","r")
+        apacheConf = open("/etc/apache2/sites-available/'+self.repository","w")
+        apacheConf.write(apacheConfExample.read())
+        apacheConfExample.close()
+        apacheConf.close()
+    
+    def enableApacheConfiguration(self):
+        try:
+            subprocess.call(['a2ensite '+self.repository+'.conf'])
+        except OSError:
+            print ("Une erreur s'est produit lors de l'autorisation du fichier de configuration Apache")
     
 
 
