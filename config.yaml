@@ -1,0 +1,14 @@
+apache:
+    ServerName: "example.com"
+    ServerAlias: "www.example.com"
+    ServerAdmin: "admin@example.com"
+    DocumentRoot: "/var/www/html/wordpress"
+
+sql:
+    rootPassword: "root"
+    wordpressDbName: "wordpress"
+    wordpressUser: "wpuser"
+    wordpressUserPassword: "wp-password"
+
+wordpress:
+    url: "https://wordpress.org/latest.tar.gz"

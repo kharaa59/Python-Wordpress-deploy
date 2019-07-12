@@ -4,7 +4,7 @@ Pour cela, nous installerons :
 - Apache2
     *Installation Apache
     *Stop, start et enable service
-    *Test Apache2 est bien installé
+    *Test Apache2 est bien installé par curl
 - MariaDB
     *Installation mariadb-server & mariadb-client
     *Stop, start et enable service
@@ -41,23 +41,33 @@ Pour cela, nous installerons :
 
 """
 
-import os
+import subprocess
+import MySQLdb
 
 
 def updateApt():
     """Mise à jour de l'apt-get"""
-    os.system('apt-get update')
+    try:
+        subprocess.call(['apt-get update'])
+    except OSError:
+        print ("Une erreur s'est produit lors de la mise à jour des paquets")
 
 
 def apt_get_install(package_list):
     """Téléchargement et installation des paquets demandés"""
 
     for package in package_list:
-        os.system('apt-get install -y '+package)
+        try:
+            subprocess.call(['apt-get install -y '+package])
+        except OSError:
+            print ("Une erreur s'est produit lors de l'installation du paquet "+package)
 
 def stateService(state, service_name):
     """Modification de l'état du service (start, restart, enable, stop...)"""
-    os.system('systemctl '+state+' '+service_name)
+    try:
+        subprocess.call(['systemctl '+state+' '+service_name])
+    except OSError:
+        print("Une erreur s'est produite lors de la modification d'état du service "+service_name)
 
 class ApacheElem:
     def installApache(self):
@@ -84,13 +94,28 @@ class MariaDbElem:
     
     def secureDataBase(self):
         """Initial DataBase configuration"""
-        os.system('mysql --user=root <<_EOF_ \
-        UPDATE mysql.user SET Password=PASSWORD("'+self.password+'") >HERE User="root"; \
-        DELETE FROM mysql.user WHERE ser=""; \
-        DELETE FROM mysql.user WHERE User="root" AND Host NOT IN ("localhost", "127.0.0.1", "::1"); \
+        paramMysql = {
+            "host" = "localhost",
+            "user" = "root",
+            "passwd" = self.password,
+            "db" = "myBase",
+        }
+        query = "ALTER USER CURRENT_USER() IDENTIFIED BY '"+paramMysql['passwd']+"'; \
+        DELETE FROM mysql.user WHERE User=""; \
+        DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', '127.0.0.1', '::1'); \
         DROP DATABASE IF EXISTS test; \
-        FLUSH PRIVILEGES; \
-        _EOF_')
+        FLUSH PRIVILEGES;"
+
+        try:
+            conn = MySQLdb.connect(**paramMysql)
+            cur = conn.cursor(MySQLdb.cursors.DictCursor)
+            cur.execute(query)
+        except MySQLdb.Error, e:
+            print "Error %d: %s" % (e.args[0],e.args[1])
+            sys.exit(1)
+
+        
+    
 
 class WordpressElem:
     pass
