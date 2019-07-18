@@ -1,6 +1,45 @@
 import subprocess
 import MySQLdb
+import yaml
 
+"""Définition des variables globales"""
+APACHE{
+    ServerName: "example.com"
+    ServerAlias: "www.example.com"
+    ServerAdmin: "admin@example.com"
+    DocumentRoot: "/var/www/html/wordpress"
+}
+
+SQL{
+    rootPassword: "root"
+    wordpressDbName: "wordpress"
+    wordpressUser: "wpuser"
+    wordpressUserPassword: "wp-password"
+}
+
+WORDPRESS{
+    url: "https://wordpress.org/latest.tar.gz"
+}
+
+
+def readYamlConfig():
+    """Fonction de lecture du fichier YAML et vérification des erreurs"""
+    with open('config.yaml','r') as configFile:
+        try:
+            yamlData = yaml.load(configFile)
+            APACHE['ServerName'] = yamlData['apache']['ServerName']
+            APACHE['ServerAlias'] = yamlData['apache']['ServerAlias']
+            APACHE['ServerAdmin'] = yamlData['apache']['ServerAdmin']
+            APACHE['DocumentRoot'] = yamlData['apache']['DocumentRoot']
+            SQL['rootPassword'] = yamlData['sql']['rootPassword']
+            SQL['wordpressDbName'] = yamlData['sql']['wordpressDbName']
+            SQL['wordpressUser'] = yamlData['sql']['wordpressUser']
+            SQL['wordpressUserPassword'] = yamlData['sql']['wordpressUserPassword']
+            WORDPRESS['url'] = yamlData['wordpress']['url']
+        except yaml.YAMLError as exc:
+            print(exc)
+            sys.exit(1)
+            
 
 def updateApt():
     """Mise à jour de l'apt-get"""
