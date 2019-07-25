@@ -1,17 +1,25 @@
 import subprocess
-import MySQLdb
-import yaml
+import pip
+import shutil
+import pwd
+import grp
 
 """Définition des variables globales"""
 CONFDATA = ""
-
-
+ 
+        
 def readYamlConfig():
+    try:
+        import yaml
+    except ImportError:
+        subprocess.call(['pip', 'install', 'pyyaml'])
+        import yaml
     """Fonction de lecture du fichier YAML et vérification des erreurs"""
     with open('config.yaml','r') as configFile:
         try:
+            global CONFDATA
             yamlData = yaml.load(configFile)
-            global CONFDATA = yamlData
+            CONFDATA = yamlData
         except yaml.YAMLError as exc:
             print(exc)
             sys.exit(1)
@@ -42,11 +50,12 @@ def stateService(state, service_name):
         print("Une erreur s'est produite lors de la modification d'état du service "+service_name)
 
 class ApacheElem:
-    def __init__(self, repository)
+    def __init__(self, repository, paquets):
         self.repository = repository
+        self.paquets = paquets
     def installApache(self):
         """Installation du service via l'apt-get"""
-        apt_get_install(['apache2'])
+        apt_get_install(self.paquets)
     
     def startApache(self):
         """Démarrage du service"""
@@ -71,9 +80,11 @@ class ApacheElem:
 
 
 class PhpElem:
+    def __init__(self, paquets):
+        self.paquets = paquets
     def installPhp(self):
         """Installation du service PHP 7.2"""
-        apt_get_install(['php7.2', 'libapache2-mod-php7.2', 'php7.2-common', 'php7.2-mbstring', 'php7.2-xmlrpc', 'php7.2-soap', 'php7.2-gd', 'php7.2-xml', 'php7.2-intl', 'php7.2-mysql', 'php7.2-cli', 'php7.2-zip', 'php7.2-curl'])
+        apt_get_install(self.paquets)
         
     def configurationPhp(self):
         phpIniTemplate= open("configuration_files/php.ini","r")
@@ -83,22 +94,29 @@ class PhpElem:
         phpIniTemplate.close()
 
 class MariaDbElem:
-    def __init__(self, password, wpdb, wpuser, wppassword):
+    def __init__(self, password, wpdb, wpuser, wppassword, paquets):
         self.password = password
         self.wpdb = wpdb
         self.wpuser = wpuser
         self.wppassword = wppassword
+        self.paquets = paquets
+        try:
+            import MySQLdb
+        except ImportError:
+            apt_get_install(['python-mysqldb'])
+            import MySQLdb
+            
     def installMariaDb(self):
         """Installation du service via l'apt-get"""
-        apt_get_install(['mariadb-server', 'mariadb-client'])
+        apt_get_install(self.paquets)
     
     def secureDataBase(self):
         """Initial DataBase configuration"""
         paramMysql = {
-            "host" = "localhost",
-            "user" = "root",
-            "passwd" = self.password,
-            "db" = "myBase",
+            "host" : "localhost",
+            "user" : "root",
+            "passwd" : self.password,
+            "db" : "myBase",
         }
         query = "ALTER USER CURRENT_USER() IDENTIFIED BY '"+paramMysql['passwd']+"'; \
         DELETE FROM mysql.user WHERE User=""; \
@@ -111,16 +129,16 @@ class MariaDbElem:
             conn = MySQLdb.connect(**paramMysql)
             cur = conn.cursor(MySQLdb.cursors.DictCursor)
             cur.execute(query)
-        except MySQLdb.Error, e:
-            print "Error %d: %s" % (e.args[0],e.args[1])
+        except (MySQLdb.Error) as e:
+            print ("Error %d: %s" % (e.args[0],e.args[1]))
             sys.exit(1)
     
     def createWpDataBase(self):
         paramMysql = {
-            "host" = "localhost",
-            "user" = "root",
-            "passwd" = self.password,
-            "db" = "myBase",
+            "host" : "localhost",
+            "user" : "root",
+            "passwd" : self.password,
+            "db" : "myBase",
         }
         query = "CREATE DATABASE "+self.wpdb+"; \
         CREATE USER '"+self.wpuser+"'@'localhost' IDENTIFIED BY "+self.wppassword+"; \
@@ -132,8 +150,8 @@ class MariaDbElem:
             conn = MySQLdb.connect(**paramMysql)
             cur = conn.cursor(MySQLdb.cursors.DictCursor)
             cur.execute(query)
-        except MySQLdb.Error, e:
-            print "Error %d: %s" % (e.args[0],e.args[1])
+        except (MySQLdb.Error) as e:
+            print ("Error %d: %s" % (e.args[0],e.args[1]))
             sys.exit(1)
 
 class WordpressElem:
@@ -144,11 +162,11 @@ class WordpressElem:
     """Installation de Wordpress dans le dossier défini dans le dossier de configuration"""
     def downloadWp(self):
         try:
-            subprocess.call(['mkdir '+self.documentRoot])
+            os.mkdir(self.documentRoot)
         except OSError:
-            print("Un erreur s'est produite lors de la création du dossier Wordpress")
+            print ("Creation of the directory %s failed" % path)
         try:
-            subprocess.call(['cd /tmp'])
+            os.chdir('/tmp')
         except OSError:
             print("Une erreur s'est produite lors de l'acces au dossier /tmp")
         try:
@@ -160,12 +178,23 @@ class WordpressElem:
         except OSError:
             print("Une erreur s'est produite lors de l'extraction de Wordpress")
         try:
-            subprocess.call(['mv wordpress '+self.documentRoot])
+            shutil.move('/tmp/wordpress', self.documentRoot+'/wordpress')
         except OSError:
             print("Une erreur s'est produite lors du déplacement du dossier Wordpress au répertoire défini")
         try:
-            subprocess.call(['chown -R www-data:www-data '+self.documentRoot])
-            subprocess.call(['chown -R 755 '+self.documentRoot])
+            os.chown(self.documentRoot,pwd.getpwnam("www-data").pw_uid,grp.getgrnam("www-data:www-data").gr_gid)
+            for root, dirs, files in os.walk(self.documentRoot):
+                for d in dirs:
+                    os.chmod(os.path.join(root, d), 755)
+                for f in files:
+                    os.chmod(os.path.join(root, f), 755)
         except OSError:
             print("Une erreur s'est produite lors de la modification des droits du dossier")
 
+
+
+def main():
+    readYamlConfig()
+    print (CONFDATA)
+    
+main()
