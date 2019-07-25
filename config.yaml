@@ -12,3 +12,4 @@ sql:
 
 wordpress:
     url: "https://wordpress.org/latest.tar.gz"
+    fileName: "latest.tar.gz"
