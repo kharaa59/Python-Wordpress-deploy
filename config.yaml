@@ -3,13 +3,34 @@ apache:
     ServerAlias: "www.example.com"
     ServerAdmin: "admin@example.com"
     DocumentRoot: "/var/www/html/wordpress"
+    paquets: 
+        - 'apache2'
 
 sql:
     rootPassword: "root"
     wordpressDbName: "wordpress"
     wordpressUser: "wpuser"
     wordpressUserPassword: "wp-password"
+    paquets: 
+        - 'mariadb-server'
+        - 'mariadb-client'
 
 wordpress:
     url: "https://wordpress.org/latest.tar.gz"
     fileName: "latest.tar.gz"
+    
+php:
+    paquets: 
+        - 'php7.2'
+        - 'libapache2-mod-php7.2'
+        - 'php7.2-common'
+        - 'php7.2-mbstring'
+        - 'php7.2-xmlrpc'
+        - 'php7.2-soap'
+        - 'php7.2-gd'
+        - 'php7.2-xml'
+        - 'php7.2-intl'
+        - 'php7.2-mysql'
+        - 'php7.2-cli'
+        - 'php7.2-zip'
+        - 'php7.2-curl'
