@@ -35,7 +35,7 @@ def readYamlConfig():
 def updateApt():
     """Mise à jour de l'apt-get"""
     try:
-        subprocess.call(['apt-get', 'update'])
+        subprocess.call(['apt-get', 'update'], shell=True)
     except OSError:
         print ("Une erreur s'est produit lors de la mise à jour des paquets")
 
@@ -45,16 +45,18 @@ def apt_get_install(package_list):
 
     for package in package_list:
         try:
-            subprocess.call(['apt-get install -y '+package])
-        except OSError:
+            subprocess.call(['apt-get install -y '+package], shell=True)
+        except (OSError) as e:
             print ("Une erreur s'est produit lors de l'installation du paquet "+package)
+            print (e)
 
 def stateService(state, service_name):
     """Modification de l'état du service (start, restart, enable, stop...)"""
     try:
-        subprocess.call(['systemctl '+state+' '+service_name])
-    except OSError:
+        subprocess.call(['systemctl '+state+' '+service_name], shell=True)
+    except (OSError) as e:
         print("Une erreur s'est produite lors de la modification d'état du service "+service_name)
+        print (e)
 
 class ApacheElem:
     def __init__(self, repository, paquets):
@@ -69,6 +71,7 @@ class ApacheElem:
         stateService('start','apache2.service')
         
     def configurationApache(self):
+        global CONFDATA
         """Modifier le fichier avec le fichier de conf avant de le copier"""
         apacheConfExample = open("configuration_files/apache.example.com.conf","r")
         apacheConfVariable = apacheConfExample.read()
@@ -199,5 +202,10 @@ def main():
     readYamlConfig()
     print (CONFDATA)
     updateApt()
+    apache = ApacheElem(CONFDATA['apache']['DocumentRoot'], CONFDATA['apache']['paquets'])
+    apache.installApache()
+    apache.startApache()
+    mariaDb = MariaDbElem(CONFDATA['sql']['rootPassword'], CONFDATA['sql']['wordpressDbName'], CONFDATA['sql']['wordpressUser'], CONFDATA['sql']['wordpressUserPassword'], CONFDATA['sql']['paquets'])
+    mariaDb.installMariaDb()
     
 main()
