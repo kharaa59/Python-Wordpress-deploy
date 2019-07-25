@@ -3,17 +3,24 @@ import pip
 import shutil
 import pwd
 import grp
+try:
+    import yaml
+except ImportError:
+    subprocess.call(['pip', 'install', 'pyyaml'])
+    import yaml
+try:
+    import pymysql
+except ImportError:
+    subprocess.call(['pip', 'install', 'pymysql'])
+    import pymysql
+pymysql.install_as_MySQLdb()
+import MySQLdb
 
 """Définition des variables globales"""
 CONFDATA = ""
  
         
 def readYamlConfig():
-    try:
-        import yaml
-    except ImportError:
-        subprocess.call(['pip', 'install', 'pyyaml'])
-        import yaml
     """Fonction de lecture du fichier YAML et vérification des erreurs"""
     with open('config.yaml','r') as configFile:
         try:
@@ -28,7 +35,7 @@ def readYamlConfig():
 def updateApt():
     """Mise à jour de l'apt-get"""
     try:
-        subprocess.call(['apt-get update'])
+        subprocess.call(['apt-get', 'update'])
     except OSError:
         print ("Une erreur s'est produit lors de la mise à jour des paquets")
 
@@ -100,12 +107,7 @@ class MariaDbElem:
         self.wpuser = wpuser
         self.wppassword = wppassword
         self.paquets = paquets
-        try:
-            import MySQLdb
-        except ImportError:
-            apt_get_install(['python-mysqldb'])
-            import MySQLdb
-            
+                    
     def installMariaDb(self):
         """Installation du service via l'apt-get"""
         apt_get_install(self.paquets)
@@ -196,5 +198,6 @@ class WordpressElem:
 def main():
     readYamlConfig()
     print (CONFDATA)
+    updateApt()
     
 main()
