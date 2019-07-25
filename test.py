@@ -54,14 +54,11 @@ class ApacheElem:
         
     def configurationApache(self):
         """Modifier le fichier avec le fichier de conf avant de le copier"""
-        try:
-            subprocess.call(['touch /etc/apache2/sites-available/'+self.repository+'.conf'])
-        except OSError:
-            print ("Une erreur s'est produit lors de la création du fichier de configuration")
-        
         apacheConfExample = open("configuration_files/apache.example.com.conf","r")
-        apacheConf = open("/etc/apache2/sites-available/'+self.repository","w")
-        apacheConf.write(apacheConfExample.read())
+        apacheConfVariable = apacheConfExample.read()
+        apacheConfVariableModify = apacheConfVariable.replace('_SERVERNAME_',CONFDATA['apache']['ServerName']).replace('_SERVERALIAS_',CONFDATA['apache']['ServerAlias']).replace('_SERVERADMIN_',CONFDATA['apache']['ServerAdmin']).replace('_DOCUMENTROOT_',CONFDATA['apache']['DocumentRoot'])
+        apacheConf = open("/etc/apache2/sites-available/"+self.repository,"w")
+        apacheConf.write(apacheConfVariableModify)
         apacheConfExample.close()
         apacheConf.close()
     
@@ -140,10 +137,14 @@ class MariaDbElem:
             sys.exit(1)
 
 class WordpressElem:
+    def __init__(self):
+        self.documentRoot = documentRoot
+        self.urlDl = urlDl
+        self.fileName = fileName
     """Installation de Wordpress dans le dossier défini dans le dossier de configuration"""
     def downloadWp(self):
         try:
-            subprocess.call(['mkdir /var/www/html/example.com'])
+            subprocess.call(['mkdir '+self.documentRoot])
         except OSError:
             print("Un erreur s'est produite lors de la création du dossier Wordpress")
         try:
@@ -151,20 +152,20 @@ class WordpressElem:
         except OSError:
             print("Une erreur s'est produite lors de l'acces au dossier /tmp")
         try:
-            subprocess.call(['wget https://wordpress.org/latest.tar.gz'])
+            subprocess.call(['wget '+self.urlDl])
         except OSError:
             print("Une erreur s'est produite lors du téléchargement de Wordpress")
         try:
-            subprocess.call(['tar -xvzf latest.tar.gz'])
+            subprocess.call(['tar -xvzf '+self.fileName])
         except OSError:
             print("Une erreur s'est produite lors de l'extraction de Wordpress")
         try:
-            subprocess.call(['mv wordpress /var/www/html/example.com'])
+            subprocess.call(['mv wordpress '+self.documentRoot])
         except OSError:
             print("Une erreur s'est produite lors du déplacement du dossier Wordpress au répertoire défini")
         try:
-            subprocess.call(['chown -R www-data:www-data /var/www/html/example.com'])
-            subprocess.call(['chown -R 755 /var/www/html/example.com'])
+            subprocess.call(['chown -R www-data:www-data '+self.documentRoot])
+            subprocess.call(['chown -R 755 '+self.documentRoot])
         except OSError:
             print("Une erreur s'est produite lors de la modification des droits du dossier")
 
