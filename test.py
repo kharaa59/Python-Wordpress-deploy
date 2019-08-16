@@ -3,6 +3,13 @@ import pip
 import shutil
 import pwd
 import grp
+import os
+import tarfile
+try:
+    import wget
+except ImportError:
+    subprocess.call(['pip', 'install', 'wget'])
+    import wget
 try:
     import yaml
 except ImportError:
@@ -179,14 +186,15 @@ class MariaDbElem:
             sys.exit(1)
 
 class WordpressElem:
-    def __init__(self):
+    def __init__(self, documentRoot, urlDl, fileName):
         self.documentRoot = documentRoot
         self.urlDl = urlDl
         self.fileName = fileName
     """Installation de Wordpress dans le dossier défini dans le dossier de configuration"""
     def downloadWp(self):
         try:
-            os.mkdir(self.documentRoot)
+            if not os.path.exists(self.documentRoot):
+                os.mkdir(self.documentRoot)
         except OSError:
             print ("Creation of the directory %s failed" % path)
         try:
@@ -194,19 +202,21 @@ class WordpressElem:
         except OSError:
             print("Une erreur s'est produite lors de l'acces au dossier /tmp")
         try:
-            subprocess.call(['wget '+self.urlDl])
-        except OSError:
+            wget.download(self.urlDl, '/tmp/'+self.fileName)
+        except :
             print("Une erreur s'est produite lors du téléchargement de Wordpress")
         try:
-            subprocess.call(['tar -xvzf '+self.fileName])
-        except OSError:
+            tar = tarfile.open('/tmp/'+self.fileName, "r:gz")
+            tar.extractall()
+            tar.close()
+        except :
             print("Une erreur s'est produite lors de l'extraction de Wordpress")
         try:
             shutil.move('/tmp/wordpress', self.documentRoot+'/wordpress')
         except OSError:
             print("Une erreur s'est produite lors du déplacement du dossier Wordpress au répertoire défini")
         try:
-            os.chown(self.documentRoot,pwd.getpwnam("www-data").pw_uid,grp.getgrnam("www-data:www-data").gr_gid)
+            os.chown(self.documentRoot,pwd.getpwnam("www-data").pw_uid,grp.getgrnam("www-data").gr_gid)
             for root, dirs, files in os.walk(self.documentRoot):
                 for d in dirs:
                     os.chmod(os.path.join(root, d), 755)
@@ -228,7 +238,9 @@ def main():
     mariaDb.installMariaDb()
     mariaDb.secureDbInstallation()
     """php = PhpElem(CONFDATA['php']['paquets'])
-    php.installPhp()"""
-    mariaDb.createWpDataBase()
+    php.installPhp()
+    mariaDb.createWpDataBase()"""
+    wordpress = WordpressElem(CONFDATA['apache']['DocumentRoot'], CONFDATA['wordpress']['url'], CONFDATA['wordpress']['fileName'])
+    wordpress.downloadWp()
     
 main()
