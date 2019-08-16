@@ -2,6 +2,7 @@ apache:
     ServerName: "example.com"
     ServerAlias: "www.example.com"
     ServerAdmin: "admin@example.com"
+    DocumentConfName : "wordpress.conf"
     DocumentRoot: "/var/www/html/wordpress"
     paquets: 
         - 'apache2'
