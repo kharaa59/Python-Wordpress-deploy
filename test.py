@@ -66,9 +66,10 @@ def stateService(state, service_name):
         print (e)
 
 class ApacheElem:
-    def __init__(self, repository, paquets):
+    def __init__(self, repository, paquets, documentConfName):
         self.repository = repository
         self.paquets = paquets
+        self.documentConfName = documentConfName
     def installApache(self):
         """Installation du service via l'apt-get"""
         apt_get_install(self.paquets)
@@ -80,17 +81,25 @@ class ApacheElem:
     def configurationApache(self):
         global CONFDATA
         """Modifier le fichier avec le fichier de conf avant de le copier"""
-        apacheConfExample = open("configuration_files/apache.example.com.conf","r")
+        try:
+            apacheConfExample = open(CONFDATA['apache']['configurationFile'],"r")
+        except:
+            print('Impossible d\'ouvrir le fichier template indiqué')
+            sys.exit(1)
         apacheConfVariable = apacheConfExample.read()
         apacheConfVariableModify = apacheConfVariable.replace('_SERVERNAME_',CONFDATA['apache']['ServerName']).replace('_SERVERALIAS_',CONFDATA['apache']['ServerAlias']).replace('_SERVERADMIN_',CONFDATA['apache']['ServerAdmin']).replace('_DOCUMENTROOT_',CONFDATA['apache']['DocumentRoot'])
-        apacheConf = open("/etc/apache2/sites-available/"+self.repository,"w")
+        try:
+            apacheConf = open("/etc/apache2/sites-available/"+self.documentConfName,"w+")
+        except:
+            print('Impossible d\'ouvrir le fichier apache indiqué')
         apacheConf.write(apacheConfVariableModify)
         apacheConfExample.close()
         apacheConf.close()
     
     def enableApacheConfiguration(self):
         try:
-            subprocess.call(['a2ensite '+self.repository+'.conf'])
+            print('a2ensite '+self.documentConfName)
+            subprocess.call(['a2ensite '+self.documentConfName], shell=True)
         except OSError:
             print ("Une erreur s'est produit lors de l'autorisation du fichier de configuration Apache")
     
@@ -212,7 +221,7 @@ class WordpressElem:
         except :
             print("Une erreur s'est produite lors de l'extraction de Wordpress")
         try:
-            shutil.move('/tmp/wordpress', self.documentRoot+'/wordpress')
+            shutil.move('/tmp/wordpress', self.documentRoot)
         except OSError:
             print("Une erreur s'est produite lors du déplacement du dossier Wordpress au répertoire défini")
         try:
@@ -231,7 +240,7 @@ def main():
     readYamlConfig()
     print (CONFDATA)
     updateApt()
-    apache = ApacheElem(CONFDATA['apache']['DocumentRoot'], CONFDATA['apache']['paquets'])
+    apache = ApacheElem(CONFDATA['apache']['DocumentRoot'], CONFDATA['apache']['paquets'],CONFDATA['apache']['DocumentConfName'])
     apache.installApache()
     apache.startApache()
     mariaDb = MariaDbElem(CONFDATA['sql']['rootPassword'], CONFDATA['sql']['wordpressDbName'], CONFDATA['sql']['wordpressUser'], CONFDATA['sql']['wordpressUserPassword'], CONFDATA['sql']['paquets'])
@@ -239,8 +248,11 @@ def main():
     mariaDb.secureDbInstallation()
     """php = PhpElem(CONFDATA['php']['paquets'])
     php.installPhp()
-    mariaDb.createWpDataBase()"""
+    mariaDb.createWpDataBase()
     wordpress = WordpressElem(CONFDATA['apache']['DocumentRoot'], CONFDATA['wordpress']['url'], CONFDATA['wordpress']['fileName'])
-    wordpress.downloadWp()
+    wordpress.downloadWp()"""
+    apache.configurationApache()
+    apache.enableApacheConfiguration()
+    stateService('reload','apache2')
     
 main()
