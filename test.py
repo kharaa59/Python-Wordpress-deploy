@@ -94,6 +94,13 @@ class PhpElem:
         self.paquets = paquets
     def installPhp(self):
         """Installation du service PHP 7.2"""
+        apt_get_install(['ca-certificates', 'apt-transport-https', 'lsb-release'])
+        try:
+            subprocess.call(['wget -O /etc/apt/trusted.gpg.d/php.gpg https://packages.sury.org/php/apt.gpg'],shell=True)
+            subprocess.call(['echo "deb https://packages.sury.org/php/ $(lsb_release -sc) main" > /etc/apt/sources.list.d/php.list'],shell=True)
+        except OSError:
+            print("Une erreur s'est produite lors de l'ajout du paquet d'installation")
+        updateApt()
         apt_get_install(self.paquets)
         
     def configurationPhp(self):
@@ -115,46 +122,58 @@ class MariaDbElem:
         """Installation du service via l'apt-get"""
         apt_get_install(self.paquets)
     
-    def secureDataBase(self):
-        """Initial DataBase configuration"""
-        paramMysql = {
-            "host" : "localhost",
-            "user" : "root",
-            "passwd" : self.password,
-            "db" : "myBase",
-        }
-        query = "ALTER USER CURRENT_USER() IDENTIFIED BY '"+paramMysql['passwd']+"'; \
-        DELETE FROM mysql.user WHERE User=""; \
-        DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', '127.0.0.1', '::1'); \
-        DROP DATABASE IF EXISTS test; \
-        FLUSH PRIVILEGES; \
-        EXIT"
 
+    def secureDbInstallation(self):
+        """Sécurisation de la BD"""
+        print(self.password)
+        test = 'mysql -e "UPDATE mysql.user SET Password = PASSWORD(\''+self.password+'\') WHERE User = \'root\'"'
+        print(test)
         try:
-            conn = MySQLdb.connect(**paramMysql)
-            cur = conn.cursor(MySQLdb.cursors.DictCursor)
-            cur.execute(query)
-        except (MySQLdb.Error) as e:
-            print ("Error %d: %s" % (e.args[0],e.args[1]))
-            sys.exit(1)
+            subprocess.call([test],shell=True)
+        except OSError:
+            print("Une erreur s'est produite lors de la modification du compte root")
+        try:
+            subprocess.call(['mysql -e "DELETE FROM mysql.user WHERE user=\'root\' AND host NOT IN (\'localhost\', \'127.0.0.1\', \'::1\')"'],shell=True)
+        except OSError:
+            print("Une erreur s'est produite lors de la suppression des comptes anonymes")
+        try:
+            subprocess.call(['mysql -e "UPDATE mysql.user SET plugin=\'\' WHERE user=\'root\'"'],shell=True)
+        except OSError:
+            print("Une erreur s'est produite lors de la suppression des comptes anonymes")
+        try:
+            subprocess.call(['mysql -e "DELETE FROM mysql.user WHERE user=\'\'"'],shell=True)
+        except OSError:
+            print("Une erreur s'est produite lors de la suppression des comptes anonymes")
+        try:
+            subprocess.call(['mysql -e "DROP DATABASE test"'],shell=True)
+        except OSError:
+            print("Une erreur s'est produite lors de la suppression de la BDD test")
+        try:
+            subprocess.call(['mysql -e "FLUSH PRIVILEGES"'],shell=True)
+        except OSError:
+            print("Une erreur s'est produite lors de l'attribution des privilèges")
+
+
     
     def createWpDataBase(self):
         paramMysql = {
             "host" : "localhost",
             "user" : "root",
             "passwd" : self.password,
-            "db" : "myBase",
+            "db" : "mysql",
         }
-        query = "CREATE DATABASE "+self.wpdb+"; \
-        CREATE USER '"+self.wpuser+"'@'localhost' IDENTIFIED BY "+self.wppassword+"; \
-        GRANT ALL ON "+self.wpdb+".* TO '"+self.wpuser+"'@'localhost' IDENTIFIED BY '"+self.wppassword+"' WITH GRANT OPTION; \
-        FLUSH PRIVILEGES; \
-        EXIT"
+        queries = [
+            'CREATE DATABASE IF NOT EXISTS '+self.wpdb+';',
+            "CREATE USER "+self.wpuser+" IDENTIFIED BY '"+self.wppassword+"';",
+            'GRANT ALL ON '+self.wpdb+'.* TO '+self.wpuser+' IDENTIFIED BY \''+self.wppassword+'\' WITH GRANT OPTION;',
+            'FLUSH PRIVILEGES;']
+        print(queries)
         
         try:
             conn = MySQLdb.connect(**paramMysql)
             cur = conn.cursor(MySQLdb.cursors.DictCursor)
-            cur.execute(query)
+            for querie in queries:
+                cur.execute(querie)           
         except (MySQLdb.Error) as e:
             print ("Error %d: %s" % (e.args[0],e.args[1]))
             sys.exit(1)
@@ -207,5 +226,9 @@ def main():
     apache.startApache()
     mariaDb = MariaDbElem(CONFDATA['sql']['rootPassword'], CONFDATA['sql']['wordpressDbName'], CONFDATA['sql']['wordpressUser'], CONFDATA['sql']['wordpressUserPassword'], CONFDATA['sql']['paquets'])
     mariaDb.installMariaDb()
+    mariaDb.secureDbInstallation()
+    """php = PhpElem(CONFDATA['php']['paquets'])
+    php.installPhp()"""
+    mariaDb.createWpDataBase()
     
 main()
