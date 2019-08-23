@@ -201,6 +201,7 @@ class WordpressElem:
         self.fileName = fileName
     """Installation de Wordpress dans le dossier défini dans le dossier de configuration"""
     def downloadWp(self):
+        currentDir = os.getcwd()
         try:
             if not os.path.exists(self.documentRoot):
                 os.mkdir(self.documentRoot)
@@ -221,18 +222,27 @@ class WordpressElem:
         except :
             print("Une erreur s'est produite lors de l'extraction de Wordpress")
         try:
-            shutil.move('/tmp/wordpress', self.documentRoot)
+            files = os.listdir('/tmp/wordpress')
+            for f in files:
+                shutil.move('/tmp/wordpress/'+f, self.documentRoot)
         except OSError:
             print("Une erreur s'est produite lors du déplacement du dossier Wordpress au répertoire défini")
         try:
             os.chown(self.documentRoot,pwd.getpwnam("www-data").pw_uid,grp.getgrnam("www-data").gr_gid)
+            os.chmod(self.documentRoot, 0o755)
             for root, dirs, files in os.walk(self.documentRoot):
                 for d in dirs:
-                    os.chmod(os.path.join(root, d), 755)
+                    os.chmod(os.path.join(root, d), 0o755)
+                    os.chown(os.path.join(root, d), pwd.getpwnam("www-data").pw_uid,grp.getgrnam("www-data").gr_gid)
                 for f in files:
-                    os.chmod(os.path.join(root, f), 755)
+                    os.chown(os.path.join(root, f), pwd.getpwnam("www-data").pw_uid,grp.getgrnam("www-data").gr_gid)
+                    os.chmod(os.path.join(root, f), 0o755)
         except OSError:
             print("Une erreur s'est produite lors de la modification des droits du dossier")
+        try:
+            os.chdir(currentDir)
+        except OSError:
+            print("Une erreur s'est produite lors de l'acces au dossier "+currentDir)
 
 
 
@@ -246,11 +256,11 @@ def main():
     mariaDb = MariaDbElem(CONFDATA['sql']['rootPassword'], CONFDATA['sql']['wordpressDbName'], CONFDATA['sql']['wordpressUser'], CONFDATA['sql']['wordpressUserPassword'], CONFDATA['sql']['paquets'])
     mariaDb.installMariaDb()
     mariaDb.secureDbInstallation()
-    """php = PhpElem(CONFDATA['php']['paquets'])
+    php = PhpElem(CONFDATA['php']['paquets'])
     php.installPhp()
     mariaDb.createWpDataBase()
     wordpress = WordpressElem(CONFDATA['apache']['DocumentRoot'], CONFDATA['wordpress']['url'], CONFDATA['wordpress']['fileName'])
-    wordpress.downloadWp()"""
+    wordpress.downloadWp()
     apache.configurationApache()
     apache.enableApacheConfiguration()
     stateService('reload','apache2')
