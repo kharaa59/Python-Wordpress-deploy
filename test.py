@@ -43,7 +43,7 @@ def readYamlConfig():
 def updateApt():
     """Mise à jour de l'apt-get"""
     try:
-        subprocess.call(['apt-get', 'update'], shell=True)
+        subprocess.call(['sudo apt-get', 'update'], shell=True)
     except OSError:
         print ("Une erreur s'est produit lors de la mise à jour des paquets")
 
@@ -53,7 +53,7 @@ def apt_get_install(package_list):
 
     for package in package_list:
         try:
-            subprocess.call(['apt-get install -y '+package], shell=True)
+            subprocess.call(['sudo apt-get install -y '+package], shell=True)
         except (OSError) as e:
             print ("Une erreur s'est produit lors de l'installation du paquet "+package)
             print (e)
@@ -61,7 +61,7 @@ def apt_get_install(package_list):
 def stateService(state, service_name):
     """Modification de l'état du service (start, restart, enable, stop...)"""
     try:
-        subprocess.call(['systemctl '+state+' '+service_name], shell=True)
+        subprocess.call(['sudo systemctl '+state+' '+service_name], shell=True)
     except (OSError) as e:
         print("Une erreur s'est produite lors de la modification d'état du service "+service_name)
         print (e)
@@ -100,7 +100,7 @@ class ApacheElem:
     def enableApacheConfiguration(self):
         try:
             print('a2ensite '+self.documentConfName)
-            subprocess.call(['a2ensite '+self.documentConfName], shell=True)
+            subprocess.call(['sudo a2ensite '+self.documentConfName], shell=True)
         except OSError:
             print ("Une erreur s'est produit lors de l'autorisation du fichier de configuration Apache")
     
@@ -150,23 +150,23 @@ class MariaDbElem:
         except OSError:
             print("Une erreur s'est produite lors de la modification du compte root")
         try:
-            subprocess.call(['mysql -e "DELETE FROM mysql.user WHERE user=\'root\' AND host NOT IN (\'localhost\', \'127.0.0.1\', \'::1\')"'],shell=True)
+            subprocess.call(['sudo mysql -e "DELETE FROM mysql.user WHERE user=\'root\' AND host NOT IN (\'localhost\', \'127.0.0.1\', \'::1\')"'],shell=True)
         except OSError:
             print("Une erreur s'est produite lors de la suppression des comptes anonymes")
         try:
-            subprocess.call(['mysql -e "UPDATE mysql.user SET plugin=\'\' WHERE user=\'root\'"'],shell=True)
+            subprocess.call(['sudo mysql -e "UPDATE mysql.user SET plugin=\'\' WHERE user=\'root\'"'],shell=True)
         except OSError:
             print("Une erreur s'est produite lors de la suppression des comptes anonymes")
         try:
-            subprocess.call(['mysql -e "DELETE FROM mysql.user WHERE user=\'\'"'],shell=True)
+            subprocess.call(['sudo mysql -e "DELETE FROM mysql.user WHERE user=\'\'"'],shell=True)
         except OSError:
             print("Une erreur s'est produite lors de la suppression des comptes anonymes")
         try:
-            subprocess.call(['mysql -e "DROP DATABASE test"'],shell=True)
+            subprocess.call(['sudo mysql -e "DROP DATABASE test"'],shell=True)
         except OSError:
             print("Une erreur s'est produite lors de la suppression de la BDD test")
         try:
-            subprocess.call(['mysql -e "FLUSH PRIVILEGES"'],shell=True)
+            subprocess.call(['sudo mysql -e "FLUSH PRIVILEGES"'],shell=True)
         except OSError:
             print("Une erreur s'est produite lors de l'attribution des privilèges")
 
