@@ -5,6 +5,7 @@ import pwd
 import grp
 import os
 import tarfile
+import sys
 try:
     import wget
 except ImportError:
