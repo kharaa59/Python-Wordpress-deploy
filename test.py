@@ -25,6 +25,7 @@ import MySQLdb
 
 """Définition des variables globales"""
 CONFDATA = ""
+TEMPFOLDER ="/tmp"
  
         
 def readYamlConfig():
@@ -201,6 +202,8 @@ class WordpressElem:
         self.fileName = fileName
     """Installation de Wordpress dans le dossier défini dans le dossier de configuration"""
     def downloadWp(self):
+        global TEMPFOLDER
+        tempsDir = TEMPFOLDER
         currentDir = os.getcwd()
         try:
             if not os.path.exists(self.documentRoot):
@@ -208,23 +211,23 @@ class WordpressElem:
         except OSError:
             print ("Creation of the directory %s failed" % path)
         try:
-            os.chdir('/tmp')
+            os.chdir(tempsDir)
         except OSError:
-            print("Une erreur s'est produite lors de l'acces au dossier /tmp")
+            print("Une erreur s'est produite lors de l'acces au dossier "+tempsDir)
         try:
-            wget.download(self.urlDl, '/tmp/'+self.fileName)
+            wget.download(self.urlDl, tempsDir+'/'+self.fileName)
         except :
             print("Une erreur s'est produite lors du téléchargement de Wordpress")
         try:
-            tar = tarfile.open('/tmp/'+self.fileName, "r:gz")
+            tar = tarfile.open(tempsDir+'/'+self.fileName, "r:gz")
             tar.extractall()
             tar.close()
         except :
             print("Une erreur s'est produite lors de l'extraction de Wordpress")
         try:
-            files = os.listdir('/tmp/wordpress')
+            files = os.listdir(tempsDir+'/wordpress')
             for f in files:
-                shutil.move('/tmp/wordpress/'+f, self.documentRoot)
+                shutil.move(tempsDir+'/wordpress/'+f, self.documentRoot)
         except OSError:
             print("Une erreur s'est produite lors du déplacement du dossier Wordpress au répertoire défini")
         try:
