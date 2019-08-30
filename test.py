@@ -8,17 +8,17 @@ import tarfile
 try:
     import wget
 except ImportError:
-    subprocess.call(['pip', 'install', 'wget'])
+    pip.main(['install', 'wget'])
     import wget
 try:
     import yaml
 except ImportError:
-    subprocess.call(['pip', 'install', 'pyyaml'])
+    pip.main(['install', 'pyyaml'])
     import yaml
 try:
     import pymysql
 except ImportError:
-    subprocess.call(['pip', 'install', 'pymysql'])
+    pip.main(['install', 'pymysql'])
     import pymysql
 pymysql.install_as_MySQLdb()
 import MySQLdb
