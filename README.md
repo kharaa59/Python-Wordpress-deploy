@@ -2,8 +2,8 @@
 Ce script permet d'automatiser le déploiement d'un serveur local Wordpress sous Debian 9.
 
 Pré-requis :  
-* Python version 3 ou supérieur
-* Pip version 19.2.1 ou supérieur (pip install --upgrade pip)
+* Python version 3 ou supérieur (apt-get install python3)
+* Pip3 version 19.2.1 ou supérieur (apt-get install python3-pip, pip3 install --upgrade pip)
 * Droits sudo
 
 Procédure  
