@@ -122,6 +122,7 @@ class PhpElem:
         apt_get_install(self.paquets)
         
     def configurationPhp(self):
+        """Configuration de PHP"""
         phpIniTemplate= open("configuration_files/php.ini","r")
         phpIni= open("/etc/php/7.2/apache2/php.ini","w")
         phpIni.write(phpIniTemplate.read())
@@ -251,7 +252,6 @@ class WordpressElem:
 
 def main():
     readYamlConfig()
-    print (CONFDATA)
     updateApt()
     apache = ApacheElem(CONFDATA['apache']['DocumentRoot'], CONFDATA['apache']['paquets'],CONFDATA['apache']['DocumentConfName'])
     apache.installApache()
