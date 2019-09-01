@@ -44,7 +44,7 @@ def readYamlConfig():
 def updateApt():
     """Mise à jour de l'apt-get"""
     try:
-        subprocess.call(['sudo apt-get', 'update'], shell=True)
+        subprocess.call(['sudo apt-get update'], shell=True)
     except OSError:
         print ("Une erreur s'est produit lors de la mise à jour des paquets")
 
@@ -117,7 +117,7 @@ class PhpElem:
             subprocess.call(['wget -O /etc/apt/trusted.gpg.d/php.gpg https://packages.sury.org/php/apt.gpg'],shell=True)
             subprocess.call(['echo "deb https://packages.sury.org/php/ $(lsb_release -sc) main" > /etc/apt/sources.list.d/php.list'],shell=True)
         except OSError:
-            print("Une erreur s'est produite lors de l'ajout du paquet d'installation")
+            print("Une erreur s'est produite lors de l'ajout du paquet d'installation php")
         updateApt()
         apt_get_install(self.paquets)
         
