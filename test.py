@@ -1,5 +1,5 @@
 import subprocess
-import pip
+from pip._internal import main as pip
 import shutil
 import pwd
 import grp
@@ -9,17 +9,17 @@ import sys
 try:
     import wget
 except ImportError:
-    pip.main(['install', 'wget'])
+    pip(['install', 'wget'])
     import wget
 try:
     import yaml
 except ImportError:
-    pip.main(['install', 'pyyaml'])
+    pip(['install', 'pyyaml'])
     import yaml
 try:
     import pymysql
 except ImportError:
-    pip.main(['install', 'pymysql'])
+    pip(['install', 'pymysql'])
     import pymysql
 pymysql.install_as_MySQLdb()
 import MySQLdb
