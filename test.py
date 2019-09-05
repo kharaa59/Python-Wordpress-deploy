@@ -11,19 +11,19 @@ try:
     import wget
 except ImportError:
     pip(['install', 'wget'])
-    time.sleep(5)
+    time.sleep(10)
     import wget
 try:
     import yaml
 except ImportError:
     pip(['install', 'pyyaml'])
-    time.sleep(5)
+    time.sleep(10)
     import yaml
 try:
     import pymysql
 except ImportError:
     pip(['install', 'pymysql'])
-    time.sleep(5)
+    time.sleep(10)
     import pymysql
 pymysql.install_as_MySQLdb()
 import MySQLdb
