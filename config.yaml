@@ -1,3 +1,11 @@
+# Ce fichier de configuration permet de personnaliser l'installation
+
+#Configuration Apache
+#ConfigurationFile correspond à l'adresse du fichier modèle de configuration
+#ServerName correspond au nom du domaine
+#ServerAdmin correspond à l'adresse email de l'administrateur du site
+#DocumentConfName correspond au nom du fichier de configuration qui sera utilisé
+#DocumentRoot correpond à l'adresse des fichiers Wordpress
 apache:
     configurationFile : "configuration_files/apache.example.com.conf"
     ServerName: "example.com"
@@ -8,6 +16,10 @@ apache:
     paquets: 
         - 'apache2'
 
+#rootPassword correspond au mot de passe root de la base de données à créer
+#wordpressDbName correspond au nom de la base de données Wordpress qui sera créée
+#wordpressUser correspond au login pour se connecter à la base de données Wordpress
+#wordpressUserPassword correspond au mot de passe pour se connecter à la base de données Wordpress
 sql:
     rootPassword: "root"
     wordpressDbName: "wordpress"
@@ -17,6 +29,8 @@ sql:
         - 'mariadb-server'
         - 'mariadb-client'
 
+#url correspond à l'adresse de récupération de l'archive contenant le dossier Wordpress
+#tempDir correspond à l'adresse de téléchargement du fichier sur votre serveur
 wordpress:
     url: "https://wordpress.org/latest.tar.gz"
     fileName: "latest.tar.gz"
