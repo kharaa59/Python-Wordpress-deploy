@@ -10,9 +10,9 @@ Ce script est prévu pour fonctionnement sous un environnement Debian 9.
 `1. HTTP : [https://github.com/kharaa59/Python-Wordpress-deploy.git]`  
 `2. Git : git clone https://github.com/kharaa59/Python-Wordpress-deploy.git` depuis votre dossier de travail 
 * Completer le fichier config.yaml avec les différentes informations demandées :
-` 1. Les informations de configuration Apache` 
-` 2. Les informations de configuration de la base de données SQL` 
-` 3. Facultatif : Les informations de téléchargement Wordpress` 
+`1. Les informations de configuration Apache` 
+`2. Les informations de configuration de la base de données SQL` 
+`3. Facultatif : Les informations de téléchargement Wordpress` 
 
 
 ### Pré-requis
@@ -53,7 +53,7 @@ Afin de vérifier le bon fonctionnement de l'installation :
 
 Ce script est en version 1.0
 
-## Authors
+## Auteurs
 
 * **Anthony DOMMERY** - *Travail initial* - [kharaa59](https://github.com/kharaa59)
 
