@@ -10,22 +10,22 @@ Ce script est prévu pour fonctionnement sous un environnement Debian 9.
 `1. HTTP : [https://github.com/kharaa59/Python-Wordpress-deploy.git]`  
 `2. Git : git clone https://github.com/kharaa59/Python-Wordpress-deploy.git` depuis votre dossier de travail 
 * Completer le fichier config.yaml avec les différentes informations demandées :
-` 1. Les informations de configuration Apache`
-` 2. Les informations de configuration de la base de données SQL`
-` 3. Facultatif : Les informations de téléchargement Wordpress`
+` 1. Les informations de configuration Apache` 
+` 2. Les informations de configuration de la base de données SQL` 
+` 3. Facultatif : Les informations de téléchargement Wordpress` 
 
 
 ### Pré-requis
 
 * Python version 3 ou supérieur
-`apt-get install python3`
+`apt-get install python3` 
 * Pip3 version 19.2.1 ou supérieur
-`apt-get install python3-pip`
-`pip3 install --upgrade pip`
+`apt-get install python3-pip` 
+`pip3 install --upgrade pip` 
 * Modules Python Wget, Pyyaml, Pymysql
-`pip3 install wget`
-`pip3 install pyyaml`
-`pip3 install pymysql`
+`pip3 install wget` 
+`pip3 install pyyaml` 
+`pip3 install pymysql` 
 * Droit sudo
 
 
@@ -40,7 +40,7 @@ Pour lancer le déploiement du script,
 ## Vérification de l'installation
 
 Afin de vérifier le bon fonctionnement de l'installation :
-* `Lancer un navigateur web`
+* `Lancer un navigateur web` 
 * `Se rendre sur IP_MACHINE/wordpress` , la page d'accueil Wordpress doit alors s'ouvrir
 
 
