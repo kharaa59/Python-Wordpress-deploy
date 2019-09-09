@@ -1,3 +1,8 @@
+"""Ce projet a pour but de déployer automatiquement un environnement Apache2 et PHP7.2 ainsi que l'installation d'un serveur Wordpress. Ce script est prévu pour fonctionnement sous un environnement Debian 9."""
+"""Copyright 2019 Dommery Anthony, licence Apache 2.0"""
+"""Pour plus d'informations sur le script, lire le fichier README.md"""
+
+"""Import des modules Python"""
 import subprocess
 from pip._internal import main as pip
 import shutil
@@ -38,7 +43,9 @@ def readYamlConfig():
     with open('config.yaml','r') as configFile:
         try:
             global CONFDATA
+            """Chargement du fichier de configuration"""
             yamlData = yaml.load(configFile)
+            """Copie des informations dans la variable globale CONFDATA"""
             CONFDATA = yamlData
         except yaml.YAMLError as exc:
             print(exc)
@@ -72,6 +79,7 @@ def stateService(state, service_name):
         print (e)
 
 class ApacheElem:
+    """Class ApacheElem contenant les méthodes liées à Apache2"""
     def __init__(self, repository, paquets, documentConfName):
         self.repository = repository
         self.paquets = paquets
@@ -88,16 +96,19 @@ class ApacheElem:
         global CONFDATA
         """Modifier le fichier avec le fichier de conf avant de le copier"""
         try:
+            """Création d'une variable contenant le fichier de configuration Apache"""
             apacheConfExample = open(CONFDATA['apache']['configurationFile'],"r")
         except:
             print('Impossible d\'ouvrir le fichier template indiqué')
             sys.exit(1)
         apacheConfVariable = apacheConfExample.read()
+        """Ecriture des données dans le fichier de configuration Apache"""
         apacheConfVariableModify = apacheConfVariable.replace('_SERVERNAME_',CONFDATA['apache']['ServerName']).replace('_SERVERALIAS_',CONFDATA['apache']['ServerAlias']).replace('_SERVERADMIN_',CONFDATA['apache']['ServerAdmin']).replace('_DOCUMENTROOT_',CONFDATA['apache']['DocumentRoot'])
         try:
             apacheConf = open("/etc/apache2/sites-available/"+self.documentConfName,"w+")
         except:
             print('Impossible d\'ouvrir le fichier apache indiqué')
+        """Ecriture des infos dans le fichier de configuration Apache créé"""
         apacheConf.write(apacheConfVariableModify)
         apacheConfExample.close()
         apacheConf.close()
@@ -112,6 +123,7 @@ class ApacheElem:
 
 
 class PhpElem:
+    """Class PhpElem contenant les méthodes liées à PHP"""
     def __init__(self, paquets):
         self.paquets = paquets
     def installPhp(self):
@@ -134,6 +146,7 @@ class PhpElem:
         phpIniTemplate.close()
 
 class MariaDbElem:
+    """Class MariaDbElem contenant les méthodes liées à la base de données"""
     def __init__(self, password, wpdb, wpuser, wppassword, paquets):
         self.password = password
         self.wpdb = wpdb
@@ -179,12 +192,15 @@ class MariaDbElem:
 
     
     def createWpDataBase(self):
+        """Fonction permettant de créer la BD Wordpress"""
+        """Connexion à la base de données"""
         paramMysql = {
             "host" : "localhost",
             "user" : "root",
             "passwd" : self.password,
             "db" : "mysql",
         }
+        """Requêtes SQL pour modification de la BDD"""
         queries = [
             'CREATE DATABASE IF NOT EXISTS '+self.wpdb+';',
             "CREATE USER "+self.wpuser+" IDENTIFIED BY '"+self.wppassword+"';",
@@ -202,15 +218,18 @@ class MariaDbElem:
             sys.exit(1)
 
 class WordpressElem:
+    """Class WordpressElem contenant les méthodes liées à Wordpress"""
     def __init__(self, documentRoot, urlDl, fileName):
         self.documentRoot = documentRoot
         self.urlDl = urlDl
         self.fileName = fileName
     """Installation de Wordpress dans le dossier défini dans le dossier de configuration"""
     def downloadWp(self):
+        """Création de variables pour la localisation sur le serveur"""
         tempDir = CONFDATA['wordpress']['tempDir']
         currentDir = os.getcwd()
         try:
+            """Création du dossier Wordpress"""
             if not os.path.exists(self.documentRoot):
                 os.mkdir(self.documentRoot)
         except OSError:
@@ -220,22 +239,26 @@ class WordpressElem:
         except OSError:
             print("Une erreur s'est produite lors de l'acces au dossier "+tempDir)
         try:
+            """Téléchargement du dossier Wordpress"""
             wget.download(self.urlDl, tempDir+'/'+self.fileName)
         except :
             print("Une erreur s'est produite lors du téléchargement de Wordpress")
         try:
+            """Extraction de Wordpress"""
             tar = tarfile.open(tempDir+'/'+self.fileName, "r:gz")
             tar.extractall()
             tar.close()
         except :
             print("Une erreur s'est produite lors de l'extraction de Wordpress")
         try:
+            """Déplacement des fichiers téléchargés dans le dossier Wordpress"""
             files = os.listdir(tempDir+'/wordpress')
             for f in files:
                 shutil.move(tempDir+'/wordpress/'+f, self.documentRoot)
         except OSError:
             print("Une erreur s'est produite lors du déplacement du dossier Wordpress au répertoire défini")
         try:
+            """Ajout des droits nécessaires aux dossiers et fichiers Wordpress"""
             os.chown(self.documentRoot,pwd.getpwnam("www-data").pw_uid,grp.getgrnam("www-data").gr_gid)
             os.chmod(self.documentRoot, 0o755)
             for root, dirs, files in os.walk(self.documentRoot):
