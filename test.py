@@ -58,6 +58,7 @@ def updateApt():
         subprocess.call(['sudo apt-get update'], shell=True)
     except OSError:
         print ("Une erreur s'est produit lors de la mise à jour des paquets")
+        sys.exit(2)
 
 
 def apt_get_install(package_list):
@@ -69,6 +70,7 @@ def apt_get_install(package_list):
         except (OSError) as e:
             print ("Une erreur s'est produit lors de l'installation du paquet "+package)
             print (e)
+            sys.exit(3)
 
 def stateService(state, service_name):
     """Modification de l'état du service (start, restart, enable, stop...)"""
@@ -100,7 +102,7 @@ class ApacheElem:
             apacheConfExample = open(CONFDATA['apache']['configurationFile'],"r")
         except:
             print('Impossible d\'ouvrir le fichier template indiqué')
-            sys.exit(1)
+            sys.exit(4)
         apacheConfVariable = apacheConfExample.read()
         """Ecriture des données dans le fichier de configuration Apache"""
         apacheConfVariableModify = apacheConfVariable.replace('_SERVERNAME_',CONFDATA['apache']['ServerName']).replace('_SERVERALIAS_',CONFDATA['apache']['ServerAlias']).replace('_SERVERADMIN_',CONFDATA['apache']['ServerAdmin']).replace('_DOCUMENTROOT_',CONFDATA['apache']['DocumentRoot'])
@@ -108,6 +110,7 @@ class ApacheElem:
             apacheConf = open("/etc/apache2/sites-available/"+self.documentConfName,"w+")
         except:
             print('Impossible d\'ouvrir le fichier apache indiqué')
+            sys.exit(5)
         """Ecriture des infos dans le fichier de configuration Apache créé"""
         apacheConf.write(apacheConfVariableModify)
         apacheConfExample.close()
@@ -119,6 +122,7 @@ class ApacheElem:
             subprocess.call(['sudo a2ensite '+self.documentConfName], shell=True)
         except OSError:
             print ("Une erreur s'est produit lors de l'autorisation du fichier de configuration Apache")
+            sys.exit(6)
     
 
 
@@ -134,6 +138,7 @@ class PhpElem:
             subprocess.call(['echo "deb https://packages.sury.org/php/ $(lsb_release -sc) main" > /etc/apt/sources.list.d/php.list'],shell=True)
         except OSError:
             print("Une erreur s'est produite lors de l'ajout du paquet d'installation php")
+            sys.exit(7)
         updateApt()
         apt_get_install(self.paquets)
         
@@ -168,26 +173,32 @@ class MariaDbElem:
             subprocess.call([test],shell=True)
         except OSError:
             print("Une erreur s'est produite lors de la modification du compte root")
+            sys.exit(8)
         try:
             subprocess.call(['sudo mysql -e "DELETE FROM mysql.user WHERE user=\'root\' AND host NOT IN (\'localhost\', \'127.0.0.1\', \'::1\')"'],shell=True)
         except OSError:
             print("Une erreur s'est produite lors de la suppression des comptes anonymes")
+            sys.exit(8)
         try:
             subprocess.call(['sudo mysql -e "UPDATE mysql.user SET plugin=\'\' WHERE user=\'root\'"'],shell=True)
         except OSError:
             print("Une erreur s'est produite lors de la suppression des comptes anonymes")
+            sys.exit(8)
         try:
             subprocess.call(['sudo mysql -e "DELETE FROM mysql.user WHERE user=\'\'"'],shell=True)
         except OSError:
             print("Une erreur s'est produite lors de la suppression des comptes anonymes")
+            sys.exit(8)
         try:
             subprocess.call(['sudo mysql -e "DROP DATABASE test"'],shell=True)
         except OSError:
             print("Une erreur s'est produite lors de la suppression de la BDD test")
+            sys.exit(8)
         try:
             subprocess.call(['sudo mysql -e "FLUSH PRIVILEGES"'],shell=True)
         except OSError:
             print("Une erreur s'est produite lors de l'attribution des privilèges")
+            sys.exit(8)
 
 
     
@@ -215,7 +226,7 @@ class MariaDbElem:
                 cur.execute(querie)           
         except (MySQLdb.Error) as e:
             print ("Error %d: %s" % (e.args[0],e.args[1]))
-            sys.exit(1)
+            sys.exit(9)
 
 class WordpressElem:
     """Class WordpressElem contenant les méthodes liées à Wordpress"""
@@ -234,6 +245,7 @@ class WordpressElem:
                 os.mkdir(self.documentRoot)
         except OSError:
             print ("Creation of the directory %s failed" % path)
+            sys.exit(10)
         try:
             os.chdir(tempDir)
         except OSError:
@@ -243,6 +255,7 @@ class WordpressElem:
             wget.download(self.urlDl, tempDir+'/'+self.fileName)
         except :
             print("Une erreur s'est produite lors du téléchargement de Wordpress")
+            sys.exit(11)
         try:
             """Extraction de Wordpress"""
             tar = tarfile.open(tempDir+'/'+self.fileName, "r:gz")
@@ -250,6 +263,7 @@ class WordpressElem:
             tar.close()
         except :
             print("Une erreur s'est produite lors de l'extraction de Wordpress")
+            sys.exit(12)
         try:
             """Déplacement des fichiers téléchargés dans le dossier Wordpress"""
             files = os.listdir(tempDir+'/wordpress')
@@ -257,6 +271,7 @@ class WordpressElem:
                 shutil.move(tempDir+'/wordpress/'+f, self.documentRoot)
         except OSError:
             print("Une erreur s'est produite lors du déplacement du dossier Wordpress au répertoire défini")
+            sys.exit(13)
         try:
             """Ajout des droits nécessaires aux dossiers et fichiers Wordpress"""
             os.chown(self.documentRoot,pwd.getpwnam("www-data").pw_uid,grp.getgrnam("www-data").gr_gid)
@@ -270,10 +285,12 @@ class WordpressElem:
                     os.chmod(os.path.join(root, f), 0o755)
         except OSError:
             print("Une erreur s'est produite lors de la modification des droits du dossier")
+            sys.exit(14)
         try:
             os.chdir(currentDir)
         except OSError:
             print("Une erreur s'est produite lors de l'acces au dossier "+currentDir)
+            sys.exit(15)
 
 
 
